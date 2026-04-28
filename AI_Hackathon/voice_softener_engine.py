@@ -47,7 +47,10 @@ def soften_voice_to_text(audio_file_path, scenario_type="C"):
     1. 오디오의 전체적인 맥락과 화자의 '의도'를 정확히 파악하세요.
     2. 페르소나에 맞춰서 문장을 완전히 새로 작성하되, 핵심 메시지는 잃지 않아야 합니다.
     3. 원문의 공격적인 어조, 전문 용어의 난해함, 발화의 파편화 등을 완전히 해결하세요.
-    4. 출력은 오직 정제된 최종 한국어 문장만 하며, 부연 설명은 하지 마세요.
+    4. **매우 중요**: 문장의 분위기를 더 살리기 위해 적절한 위치에 비언어적 표현 태그를 반드시 삽입하세요.
+       태그는 반드시 대괄호 안에 **영어**로 작성해야 TTS 엔진이 인식할 수 있습니다.
+       (예시 태그: [laughing], [chuckling], [sighs], [coughs], [clears throat], [breath] 등)
+    5. 출력은 오직 정제된 최종 한국어 문장만 하며, 부연 설명은 하지 마세요.
     """
     
     response = model.generate_content([system_instruction, audio_part])
@@ -70,7 +73,10 @@ def soften_text_to_text(input_text, scenario_type="C"):
     1. 입력 텍스트의 전체적인 맥락과 화자의 '의도'를 정확히 파악하세요.
     2. 페르소나에 맞춰서 문장을 완전히 새로 작성하되, 핵심 메시지는 잃지 않아야 합니다.
     3. 원문의 공격적인 어조, 전문 용어의 난해함, 발화의 파편화 등을 완전히 해결하세요.
-    4. 출력은 오직 정제된 최종 한국어 문장만 하며, 부연 설명은 하지 마세요.
+    4. **매우 중요**: 문장의 분위기를 더 살리기 위해 적절한 위치에 비언어적 표현 태그를 반드시 삽입하세요.
+       태그는 반드시 대괄호 안에 **영어**로 작성해야 TTS 엔진이 인식할 수 있습니다.
+       (예시 태그: [laughing], [chuckling], [sighs], [coughs], [clears throat], [breath] 등)
+    5. 출력은 오직 정제된 최종 한국어 문장만 하며, 부연 설명은 하지 마세요.
     """
     
     response = model.generate_content([system_instruction, input_text])
