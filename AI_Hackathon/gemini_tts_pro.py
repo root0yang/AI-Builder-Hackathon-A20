@@ -17,7 +17,7 @@ def generate_gemini_tts_pro(
     emotion="neutral", 
     speed=1.0,
     language_code="ko-KR",
-    model_name="gemini-3.1-flash-tts-preview"
+    model_name="gemini-2.5-flash-tts"
 ):
     """
     Gemini TTS의 고급 기능(표현 태그 등)을 사용하여 음성을 생성합니다.
