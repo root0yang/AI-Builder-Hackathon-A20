@@ -1,0 +1,4 @@
+flask
+google-cloud-text-tospeech
+vertexai
+uuid

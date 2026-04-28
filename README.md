@@ -45,6 +45,26 @@ python3 AI_Hackathon/voice_softener_pipeline.py <입력파일명.mp3> <출력파
 python3 AI_Hackathon/voice_softener_pipeline.py input_doctor.mp3 output_kind_doctor.mp3 B
 ```
 
+## 🌐 웹 데모 (Web Demo) 시연
+
+프로젝트의 기능을 웹 브라우저에서 직관적으로 확인할 수 있는 인터페이스를 제공합니다.
+
+### 1. 웹 서버 실행
+```bash
+cd AI_Hackathon
+python3 app.py
+```
+
+### 2. 접속 방법
+*   **Cloud Shell 환경**: 우측 상단의 '웹 미리보기' 아이콘을 클릭하고 **8080 포트**에서 미리보기를 선택합니다.
+*   **로컬 환경**: 브라우저에서 `http://localhost:8080`에 접속합니다.
+
+### 3. 주요 기능
+*   **시나리오 카드**: 4가지 페르소나(A~D)를 클릭하여 즉시 전환 가능
+*   **실시간 정제**: 텍스트 입력 후 변환 시 Gemini 2.5 Flash가 맥락에 맞게 텍스트 수정
+*   **음성 자동 재생**: 정제된 텍스트가 TTS Pro를 통해 즉시 음성으로 출력
+*   **태그 하이라이팅**: `[sighs]`, `[pause]` 등 비언어적 표현 태그를 시각적으로 강조
+
 ## 🎙 Gemini TTS Pro 단독 사용 가이드
 
 파이프라인을 거치지 않고 직접 `gemini_tts_pro.py`의 기능을 사용하여 텍스트를 음성으로 변환할 수 있습니다. 이 모듈은 감정(Emotion), 어투(Tone), 그리고 표현 태그(Expression Tags)를 상세하게 지정할 수 있는 기능을 제공합니다.

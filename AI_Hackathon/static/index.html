@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HarmonyVoice - Voice Softener Demo</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>HarmonyVoice</h1>
+            <p class="subtitle">Gemini 2.5 Flash & TTS Pro를 이용한 발화 순화 및 음성 재합성 데모</p>
+        </header>
+
+        <main>
+            <section class="scenario-section">
+                <h2>1. 시나리오 선택</h2>
+                <div class="scenario-grid">
+                    <div class="scenario-card active" data-scenario="C">
+                        <div class="icon">💬</div>
+                        <h3>Calm Colleague</h3>
+                        <p>무례한 고객 상담을 정중하게 순화</p>
+                    </div>
+                    <div class="scenario-card" data-scenario="B">
+                        <div class="icon">🩺</div>
+                        <h3>Kind Explainer</h3>
+                        <p>어려운 전문 용어를 쉬운 일상어로 변환</p>
+                    </div>
+                    <div class="scenario-card" data-scenario="A">
+                        <div class="icon">👔</div>
+                        <h3>Professional Exec</h3>
+                        <p>비즈니스 실언 방지 및 톤 정문화</p>
+                    </div>
+                    <div class="scenario-card" data-scenario="D">
+                        <div class="icon">🧡</div>
+                        <h3>Gentle Interpreter</h3>
+                        <p>인지 장애/혼란 발화를 맥락에 맞게 전달</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="input-section">
+                <h2>2. 원문 입력</h2>
+                <textarea id="inputText" placeholder="순화가 필요한 문장을 입력하세요..."></textarea>
+                <div class="controls">
+                    <div class="voice-select">
+                        <label for="voice">목소리:</label>
+                        <select id="voice">
+                            <option value="Aoede">Aoede (차분함)</option>
+                            <option value="Puck">Puck (활기참)</option>
+                            <option value="Fenrir">Fenrir (권위있음)</option>
+                            <option value="Kore">Kore (따뜻함)</option>
+                        </select>
+                    </div>
+                    <button id="softenBtn">변환하기</button>
+                </div>
+            </section>
+
+            <section class="result-section hidden" id="resultSection">
+                <h2>3. 결과 확인</h2>
+                <div class="result-container">
+                    <div class="result-box">
+                        <label>정제된 텍스트:</label>
+                        <div id="refinedText" class="refined-text"></div>
+                    </div>
+                    <div class="result-box">
+                        <label>합성된 음성:</label>
+                        <audio id="audioPlayer" controls></audio>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <div id="loader" class="loader-overlay hidden">
+            <div class="loader"></div>
+            <p>Gemini가 문장을 다듬고 목소리를 입히는 중...</p>
+        </div>
+
+        <footer>
+            <p>© 2026 HarmonyVoice Team. Powered by Google Gemini.</p>
+        </footer>
+    </div>
+    <script src="/static/script.js"></script>
+</body>
+</html>
