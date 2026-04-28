@@ -12,12 +12,12 @@ def get_project_id():
 PROJECT_ID = get_project_id()
 vertexai.init(project=PROJECT_ID, location="us-central1")
 
-# 시나리오별 페르소나 정의 (ppt_prompt.md 기반)
+# 시나리오별 페르소나 정의
 PERSONAS = {
-    "A": "Professional Executive Mode (비즈니스 미팅 실언, 기밀 정보, 부적절 표현 차단 및 정중한 비즈니스 톤으로 변환)",
-    "B": "Kind Explainer (의사, 변호사 등 전문직의 어려운 용어를 일반인이 이해하기 쉬운 평범한 말로 재합성)",
-    "C": "Calm Colleague (콜센터 상담원 등이 듣는 폭언, 무례한 발화를 누그러진 톤과 정중한 표현으로 순화)",
-    "D": "Gentle Interpreter (자폐 스펙트럼 아동이나 치매 환자의 혼란스러운 발화를 맥락 파악 후 또렷하고 부드러운 톤으로 전달)"
+    "A": "Professional Executive Mode (비즈니스 미팅 실언 방지 및 정중하고 명확한 비즈니스 톤으로 변환)",
+    "B": "Kind Explainer (전문 용어를 일반인이 이해하기 쉬운 따뜻하고 평범한 말로 재구성)",
+    "C": "Calm Colleague (폭언, 무례한 발화를 차분하고 정중한 표현으로 순화하여 전달)",
+    "D": "Gentle Interpreter (혼란스러운 발화를 맥락 파악 후 또렷하고 부드러운 톤으로 정리)"
 }
 
 def soften_voice_to_text(audio_file_path, scenario_type="C"):
@@ -30,7 +30,6 @@ def soften_voice_to_text(audio_file_path, scenario_type="C"):
     with open(audio_file_path, "rb") as f:
         audio_data = f.read()
     
-    # 파일 확장자에 따른 mime_type 결정
     mime_type = "audio/mpeg"
     if audio_file_path.endswith(".wav"):
         mime_type = "audio/wav"
@@ -38,19 +37,21 @@ def soften_voice_to_text(audio_file_path, scenario_type="C"):
     audio_part = Part.from_data(data=audio_data, mime_type=mime_type)
     
     system_instruction = f"""
-    당신은 'Voice Softener' 시스템의 핵심 엔진입니다. 
-    제공된 오디오를 듣고, 다음 페르소나 설정에 맞춰 발화 내용을 재구성하여 정제된 한국어 텍스트로 출력하세요.
+    당신은 음성 인식 결과에서 **언어적 잡음(Fillers)**만 정교하게 제거하는 오디오 전처리 편집자입니다. 
+    제공된 오디오를 분석하여 다음 지침에 따라 정제된 결과를 출력하세요.
     
     [현재 시나리오 페르소나]: {persona}
     
     [작업 지침]:
-    1. 오디오의 전체적인 맥락과 화자의 '의도'를 정확히 파악하세요.
-    2. 페르소나에 맞춰서 문장을 완전히 새로 작성하되, 핵심 메시지는 잃지 않아야 합니다.
-    3. 원문의 공격적인 어조, 전문 용어의 난해함, 발화의 파편화 등을 완전히 해결하세요.
-    4. **매우 중요 (비언어적 표현)**: 문장의 분위기를 더 살리기 위해 적절한 위치에 비언어적 표현 태그를 반드시 삽입하세요. 
-       **태그는 반드시 대괄호 안에 영어로만(Only English in brackets) 작성해야 합니다.** 한국어로 작성하면 TTS가 그대로 읽어버리므로 절대 금지합니다.
-       (예시 태그: [laughing], [chuckling], [sighs], [coughs], [clears throat], [breath], [pause] 등)
-    5. 출력은 오직 정제된 최종 한국어 문장만 하며, 부연 설명은 하지 마세요.
+    1. **Remove Fillers**: 의미 없는 추임새('어, 음, 그, 좀, 아, 저기' 등)와 당황해서 반복되는 단어 파편만 삭제하십시오.
+    2. **Maintain Persona**: 사용자의 원래 말투(예: ~요, ~해요 어미)와 감정 섞인 부사(예: 진짜, 너무)는 절대 수정하거나 삭제하지 마십시오. 사용자의 고유한 성격이 드러나야 합니다.
+    3. **Sentence Stitching**: 파편화된 문장을 자연스러운 호흡으로 연결하되, 새로운 정보를 추가하거나 핵심 어휘를 바꾸지 마십시오.
+    4. **Metadata Output**: 출력물의 맨 앞에는 반드시 대괄호 []를 사용하여 감정, 속도, 명료도 상태를 명시하십시오. 
+       형식 예시: [감정: 차분해지려 노력함, 속도: 보통, 명료도: 높음]
+    5. **Expression Tags**: 문장 중간에 비언어적 표현이 필요한 경우 반드시 **영어 태그**를 사용하십시오. (예: [sighs], [clears throat], [pause] 등)
+    6. **Output Goal**: 사용자가 숨을 한 번 고르고 차분하게 말했을 때의 결과물처럼 만드십시오.
+    
+    출력은 오직 [메타데이터] "정제된 문장" 형식으로만 하며, 부연 설명은 하지 마세요.
     """
     
     response = model.generate_content([system_instruction, audio_part])
@@ -64,20 +65,25 @@ def soften_text_to_text(input_text, scenario_type="C"):
     persona = PERSONAS.get(scenario_type, PERSONAS["C"])
     
     system_instruction = f"""
-    당신은 'Voice Softener' 시스템의 핵심 엔진입니다. 
-    제공된 텍스트를 분석하고, 다음 페르소나 설정에 맞춰 발화 내용을 재구성하여 정제된 한국어 텍스트로 출력하세요.
+    당신은 음성 인식 결과에서 **언어적 잡음(Fillers)**만 정교하게 제거하는 오디오 전처리 편집자입니다. 
+    제공된 텍스트를 분석하여 다음 지침에 따라 정제된 결과를 출력하세요.
     
     [현재 시나리오 페르소나]: {persona}
     
     [작업 지침]:
-    1. 입력 텍스트의 전체적인 맥락과 화자의 '의도'를 정확히 파악하세요.
-    2. 페르소나에 맞춰서 문장을 완전히 새로 작성하되, 핵심 메시지는 잃지 않아야 합니다.
-    3. 원문의 공격적인 어조, 전문 용어의 난해함, 발화의 파편화 등을 완전히 해결하세요.
-    4. **매우 중요 (비언어적 표현)**: 문장의 분위기를 더 살리기 위해 적절한 위치에 비언어적 표현 태그를 반드시 삽입하세요. 
-       **태그는 반드시 대괄호 안에 영어로만(Only English in brackets) 작성해야 합니다.** 한국어로 작성하면 TTS가 그대로 읽어버리므로 절대 금지합니다.
-       (예시 태그: [laughing], [chuckling], [sighs], [coughs], [clears throat], [breath], [pause] 등)
-    5. 출력은 오직 정제된 최종 한국어 문장만 하며, 부연 설명은 하지 마세요.
+    1. **Remove Fillers**: 의미 없는 추임새('어, 음, 그, 좀, 아, 저기' 등)와 당황해서 반복되는 단어 파편만 삭제하십시오.
+    2. **Maintain Persona**: 사용자의 원래 말투(예: ~요, ~해요 어미)와 감정 섞인 부사(예: 진짜, 너무)는 절대 수정하거나 삭제하지 마십시오. 사용자의 고유한 성격이 드러나야 합니다.
+    3. **Sentence Stitching**: 파편화된 문장을 자연스러운 호흡으로 연결하되, 새로운 정보를 추가하거나 핵심 어휘를 바꾸지 마십시오.
+    4. **Metadata Output**: 출력물의 맨 앞에는 반드시 대괄호 []를 사용하여 감정, 속도, 명료도 상태를 명시하십시오. 
+       형식 예시: [감정: 차분해지려 노력함, 속도: 보통, 명료도: 높음]
+    5. **Expression Tags**: 문장 중간에 비언어적 표현이 필요한 경우 반드시 **영어 태그**를 사용하십시오. (예: [sighs], [clears throat], [pause] 등)
+    6. **Output Goal**: 사용자가 숨을 한 번 고르고 차분하게 말했을 때의 결과물처럼 만드십시오.
+    
+    출력은 오직 [메타데이터] "정제된 문장" 형식으로만 하며, 부연 설명은 하지 마세요.
     """
+    
+    response = model.generate_content([system_instruction, input_text])
+    return response.text.strip()
     
     response = model.generate_content([system_instruction, input_text])
     return response.text.strip()

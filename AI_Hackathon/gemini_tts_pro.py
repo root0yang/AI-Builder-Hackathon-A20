@@ -1,4 +1,5 @@
 import os
+import re
 from google.cloud import texttospeech_v1beta1 as texttospeech
 
 def get_project_id():
@@ -9,6 +10,33 @@ def get_project_id():
         return os.environ.get("GOOGLE_CLOUD_PROJECT")
 
 PROJECT_ID = get_project_id()
+
+def parse_metadata(text):
+    """
+    텍스트 앞부분의 [감정: ..., 속도: ...] 형식을 파싱합니다.
+    """
+    metadata = {}
+    match = re.search(r'\[(.*?)\]', text)
+    if match:
+        meta_str = match.group(1)
+        # 감정 추출
+        emotion_match = re.search(r'감정:\s*([^,\]]+)', meta_str)
+        if emotion_match:
+            metadata['emotion'] = emotion_match.group(1).strip()
+        
+        # 속도 추출
+        speed_match = re.search(r'속도:\s*([^,\]]+)', meta_str)
+        if speed_match:
+            speed_str = speed_match.group(1).strip()
+            if "빠름" in speed_str: metadata['speed'] = 1.2
+            elif "느림" in speed_str: metadata['speed'] = 0.8
+            else: metadata['speed'] = 1.0
+            
+        # 메타데이터를 제외한 순수 텍스트 반환
+        clean_text = text.replace(match.group(0), "").strip()
+        return metadata, clean_text
+    
+    return {}, text
 
 def generate_gemini_tts_pro(
     text, 
@@ -21,8 +49,16 @@ def generate_gemini_tts_pro(
 ):
     """
     Gemini TTS의 고급 기능(표현 태그 등)을 사용하여 음성을 생성합니다.
+    입력 텍스트에 포함된 메타데이터를 파싱하여 감정과 속도를 조절합니다.
     """
     client = texttospeech.TextToSpeechClient()
+
+    # 메타데이터 파싱
+    metadata, clean_text = parse_metadata(text)
+    
+    # 파싱된 값이 있으면 덮어쓰기
+    final_emotion = metadata.get('emotion', emotion)
+    final_speed = metadata.get('speed', speed)
 
     # 음성 설정
     voice = texttospeech.VoiceSelectionParams(
@@ -31,21 +67,21 @@ def generate_gemini_tts_pro(
         model_name=model_name
     )
 
-    # 입력 텍스트 설정 (표현 태그 [chuckling], [coughs] 등 포함 가능)
+    # 입력 텍스트 설정
     synthesis_input = texttospeech.SynthesisInput(
-        text=text,
-        prompt=f"Say this in a {emotion} style."
+        text=clean_text,
+        prompt=f"Say this in a {final_emotion} style."
     )
 
     # 오디오 설정
     audio_config = texttospeech.AudioConfig(
         audio_encoding=texttospeech.AudioEncoding.MP3,
-        speaking_rate=speed
+        speaking_rate=final_speed
     )
 
     print(f"--- Gemini TTS Pro 생성 시작 ---")
-    print(f"텍스트: {text}")
-    print(f"설정: 목소리={voice_name}, 감정={emotion}, 속도={speed}")
+    print(f"텍스트(순수): {clean_text}")
+    print(f"설정: 목소리={voice_name}, 감정={final_emotion}, 속도={final_speed}")
 
     try:
         response = client.synthesize_speech(

@@ -66,10 +66,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 태그 하이라이팅을 포함한 텍스트 표시 함수
+    // 태그 하이라이팅 및 메타데이터 처리를 포함한 텍스트 표시 함수
     function displayRefinedText(text) {
-        // [tag] 형태를 <span class="tag">[tag]</span>로 변환
-        const htmlText = text.replace(/\[([a-zA-Z\s]+)\]/g, '<span class="tag">[$1]</span>');
-        refinedTextDiv.innerHTML = htmlText;
+        // [감정: ..., 속도: ...] 형태의 메타데이터 추출
+        const metadataMatch = text.match(/^\[(.*?)\]/);
+        let contentText = text;
+        let metadataHtml = '';
+
+        if (metadataMatch) {
+            metadataHtml = `<div class="metadata-badge">${metadataMatch[0]}</div>`;
+            contentText = text.replace(metadataMatch[0], "").trim();
+        }
+
+        // 문장 내 [tag] 형태를 <span class="tag">[tag]</span>로 변환
+        const htmlText = contentText.replace(/\[([a-zA-Z\s]+)\]/g, '<span class="tag">[$1]</span>');
+        refinedTextDiv.innerHTML = metadataHtml + `<div class="content-text">${htmlText}</div>`;
     }
 });
